@@ -60,10 +60,9 @@ app.post('/employees', async (req, res) => {
 });
 
 
-app.put('/employees/:id', async (req, res) => {
+app.put('/api/employees/:id', async (req, res) => {
   const { id } = req.params;
   const { firstName, lastName, position, department, isWorkingFromHome } = req.body;
-
 
   if (!firstName && !lastName && !position && !department && isWorkingFromHome === undefined) {
     return res.status(400).json({ message: 'At least one field to update is required' });
@@ -83,18 +82,22 @@ app.put('/employees/:id', async (req, res) => {
       RETURNING *;
     `;
     
-
     if (updateQuery.rowCount > 0) {
       res.json(updateQuery.rows[0]);
     } else {
       res.status(404).json({ message: 'Employee not found' });
     }
   } catch (error) {
-
     console.error('Error during update:', error);
-
+    
     res.status(500).json({ message: 'Internal Server Error' });
   }
+});
+
+
+const PORT = process.env.PORT || 4000;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });
 
 
