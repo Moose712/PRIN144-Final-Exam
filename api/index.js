@@ -101,30 +101,27 @@ app.listen(PORT, () => {
 });
 
 
-app.delete('/employees/:id', async (req, res) => {
-  const { id } = req.params;
+app.delete('/api/employees/:id', async (req, res) => {
+  const { id } = req.params; 
 
- 
   if (!id || isNaN(id)) {
     return res.status(400).json({ message: 'Invalid or missing ID' });
   }
 
   try {
-   
-    const deleteQuery = await sql`DELETE FROM Employees WHERE Id = ${id} RETURNING Id;`;
 
-   
+    const deleteQuery = await sql`
+      DELETE FROM Employees WHERE Id = ${id} RETURNING Id;
+    `;
+
     if (deleteQuery.rowCount > 0) {
-      res.status(204).send(); 
+      res.status(204).send();  
     } else {
-    
+      
       res.status(404).json({ message: 'Employee not found' });
     }
   } catch (error) {
-
     console.error('Error during deletion:', error);
-    
- 
     res.status(500).json({ message: 'Internal Server Error' });
   }
 });
