@@ -64,25 +64,25 @@ app.put('/employees/:id', async (req, res) => {
   const { id } = req.params;
   const { firstName, lastName, position, department, isWorkingFromHome } = req.body;
 
-  
-  const updateFields = {};
-  if (firstName) updateFields.first_name = firstName;
-  if (lastName) updateFields.last_name = lastName;
-  if (position) updateFields.position = position;
-  if (department) updateFields.department = department;
-  if (isWorkingFromHome !== undefined) updateFields.is_working_from_home = isWorkingFromHome;
 
-  if (Object.keys(updateFields).length === 0) {
-    return res.status(400).json({ message: 'At least one field must be provided to update' });
+  if (!firstName && !lastName && !position && !department && isWorkingFromHome === undefined) {
+    return res.status(400).json({ message: 'At least one field to update is required' });
   }
 
   try {
+
     const updateQuery = await sql`
       UPDATE Employees
-      SET ${sql(updateFields)}
+      SET
+        first_name = ${firstName || null},
+        last_name = ${lastName || null},
+        position = ${position || null},
+        department = ${department || null},
+        is_working_from_home = ${isWorkingFromHome !== undefined ? isWorkingFromHome : null}
       WHERE Id = ${id}
       RETURNING *;
     `;
+    
 
     if (updateQuery.rowCount > 0) {
       res.json(updateQuery.rows[0]);
@@ -90,7 +90,9 @@ app.put('/employees/:id', async (req, res) => {
       res.status(404).json({ message: 'Employee not found' });
     }
   } catch (error) {
-    console.error(error);
+
+    console.error('Error during update:', error);
+
     res.status(500).json({ message: 'Internal Server Error' });
   }
 });
@@ -99,19 +101,29 @@ app.put('/employees/:id', async (req, res) => {
 app.delete('/employees/:id', async (req, res) => {
   const { id } = req.params;
 
+ 
+  if (!id || isNaN(id)) {
+    return res.status(400).json({ message: 'Invalid or missing ID' });
+  }
+
   try {
+   
     const deleteQuery = await sql`DELETE FROM Employees WHERE Id = ${id} RETURNING Id;`;
 
+   
     if (deleteQuery.rowCount > 0) {
       res.status(204).send(); 
     } else {
+    
       res.status(404).json({ message: 'Employee not found' });
     }
   } catch (error) {
-    console.error(error);
+
+    console.error('Error during deletion:', error);
+    
+ 
     res.status(500).json({ message: 'Internal Server Error' });
   }
 });
-
 
 module.exports = app;
